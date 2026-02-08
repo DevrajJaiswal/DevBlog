@@ -1,11 +1,12 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Button, Input, Select, RTE } from '../index'
 import appwriteService from "../../appwrite/config"
 import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 
-function PostForm(post) {
+function PostForm({ post }) {
+    const [error, setError] = useState('')
     const { register, handleSubmit, watch, setValue, control, getValues } = useForm({
         defaultValues: {
             title: post?.title || "",
@@ -16,26 +17,36 @@ function PostForm(post) {
     })
 
     const navigate = useNavigate()
-    const userData = useSelector(state => state.user.userData);
+    const userData = useSelector(state => state.userData);
 
     const submit = async (data) => {
+        setError('')
         if (post) {
-            const file = data.image[0] ? appwriteService.uploadFile(data.image[0]) : null;
+            const file = data.image[0] ? await appwriteService.uploadFile(data.image[0]) : null;
 
             if (file) {
-                appwriteService.deleteFile(post.featuredImage)
+                appwriteService.deleteFile(post.featureImage)
             }
 
-            const dbPost = await appwriteService.updatePost(post.$id, { ...data, featuredImage: file ? file.$id : undefined })
+            const dbPost = await appwriteService.updatePost(post.$id, { ...data, featureImage: file ? file.$id : undefined })
             if (dbPost) {
                 navigate(`/post/${dbPost.$id}`)
             }
         } else {
-            const file = data.image[0] ? appwriteService.uploadFile(data.image[0]) : null;
-
-            if (file) {
-                const fileId = file.$id;
-                data.featuredImage = fileId
+            if (!userData?.$id) {
+                setError('Please login to create a post.')
+                return
+            }
+            if (!data.image?.[0]) {
+                setError('Please select a featured image.')
+                return
+            }
+            const file = await appwriteService.uploadFile(data.image[0]);
+            if (file?.$id) {
+                data.featureImage = appwriteService.getFilePreview(file.$id).toString()
+            } else {
+                setError('Image upload failed. Please try again.')
+                return
             }
 
             const dbPost = await appwriteService.createPost({ ...data, userId: userData.$id })
@@ -47,11 +58,12 @@ function PostForm(post) {
 
     const slugTransform = useCallback((value) => {
         if (value && typeof (value) === 'string')
-            return value.trim()
-                .toLocaleLowerCase()
-                .replace(/^[a-zA-Z\d\s]+/g, '-')
-                .replace(/\s/g, '-');
-
+            return value
+                .trim()
+                .toLowerCase()
+                .replace(/[^\w\s-]/g, '')  // remove special chars
+                .replace(/\s+/g, '-')      // spaces → hyphen
+                .replace(/-+/g, '-');      // avoid multiple hyphens
         return ''
     }, [])
 
@@ -66,9 +78,10 @@ function PostForm(post) {
             subscription.unsubscribe()
         }
     }, [watch, slugTransform, setValue])
-    
+
     return (
         <form onSubmit={handleSubmit(submit)} className="flex flex-wrap">
+            {error && <p className="w-full mb-4 text-red-600">{error}</p>}
             <div className="w-2/3 px-2">
                 <Input
                     label="Title :"
@@ -98,7 +111,7 @@ function PostForm(post) {
                 {post && (
                     <div className="w-full mb-4">
                         <img
-                            src={appwriteService.getFilePreview(post.featuredImage)}
+                            src={post.featureImage}
                             alt={post.title}
                             className="rounded-lg"
                         />

@@ -1,5 +1,5 @@
 import config from "../config/config";
-import { Client, ID, Databases, Storage, Query } from "appwrite";
+import { Client, ID, Databases, Storage, Query, Permission, Role } from "appwrite";
 
 export class Service {
     client = new Client();
@@ -15,26 +15,32 @@ export class Service {
         this.bucket = new Storage(this.client)
     }
 
-    async createPost({ title, slug, content, featuredImage, status, userId }) {
+    async createPost({ title, slug, content, featureImage, status, userId }) {
         try {
+            const documentId = ID.unique();
             return await this.databases.createDocument(
                 config.appwriteDatabaseId,
                 config.appwriteCollectionID,
-                slug,
+                documentId,
                 {
                     title,
+                    slug,
                     content,
-                    featuredImage,
+                    featureImage,
                     status,
                     userId
-                }
+                },
+                [
+                    Permission.read(Role.any()),
+                    Permission.write(Role.user(userId))
+                ]
             )
         } catch (error) {
             console.log(error)
         }
     }
 
-    async updatePost(slug, { title, content, featuredImage, status }) {
+    async updatePost(slug, { title, slug: newSlug, content, featureImage, status }) {
         try {
             return await this.databases.updateDocument(
                 config.appwriteDatabaseId,
@@ -42,8 +48,9 @@ export class Service {
                 slug,
                 {
                     title,
+                    slug: newSlug,
                     content,
-                    featuredImage,
+                    featureImage,
                     status
                 }
             )
@@ -96,8 +103,8 @@ export class Service {
         try {
             return await this.bucket.createFile(
                 config.appwriteBucketId,
-                ID.unique,
-                file,
+                ID.unique(),
+                file
             )
         } catch (error) {
             console.log(error)

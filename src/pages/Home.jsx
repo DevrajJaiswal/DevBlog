@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import appwriteService from '../appwrite/config'
 import { Container, PostCard } from '../components'
+import { useSelector } from 'react-redux'
 
 function Home() {
     const [posts, setPosts] = useState([])
+    const authStatus = useSelector((state) => state.status)
 
     useEffect(() => {
         appwriteService.getPosts([]).then((posts) => {

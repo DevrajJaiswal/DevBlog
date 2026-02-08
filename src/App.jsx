@@ -5,6 +5,7 @@ import authService from './appwrite/auth'
 import { login, logout } from './store/authSlice'
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
+import { Outlet } from 'react-router-dom';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -13,7 +14,6 @@ function App() {
   useEffect(() => {
     authService.getCurrentUser()
       .then((userData) => {
-        console.log(userData)
         if (userData) {
           dispatch(login({ userData }))
         } else {
@@ -27,8 +27,7 @@ function App() {
     <div>
       <Header></Header>
       <main>
-        TODO  
-        {/* <Outlet></Outlet> */}
+        <Outlet />
       </main>
       <Footer></Footer>
     </div>
