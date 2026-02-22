@@ -43,7 +43,7 @@ function PostForm({ post }) {
             }
             const file = await appwriteService.uploadFile(data.image[0]);
             if (file?.$id) {
-                data.featureImage = appwriteService.getFilePreview(file.$id).toString()
+                data.featureImage = file ? file.$id : undefined;
             } else {
                 setError('Image upload failed. Please try again.')
                 return
@@ -111,7 +111,7 @@ function PostForm({ post }) {
                 {post && (
                     <div className="w-full mb-4">
                         <img
-                            src={post.featureImage}
+                            src={appwriteService.getFilePreview(post.featureImage)}
                             alt={post.title}
                             className="rounded-lg"
                         />
