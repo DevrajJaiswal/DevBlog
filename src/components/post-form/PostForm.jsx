@@ -30,7 +30,7 @@ function PostForm({ post }) {
 
             const dbPost = await appwriteService.updatePost(post.$id, { ...data, featureImage: file ? file.$id : undefined })
             if (dbPost) {
-                navigate(`/post/${dbPost.$id}`)
+                navigate(`/post/${dbPost.slug}`)
             }
         } else {
             if (!userData?.$id) {
@@ -51,7 +51,7 @@ function PostForm({ post }) {
 
             const dbPost = await appwriteService.createPost({ ...data, userId: userData.$id })
             if (dbPost) {
-                navigate(`/post/${dbPost.$id}`)
+                navigate(`/post/${dbPost.slug}`)
             }
         }
     }

@@ -75,10 +75,12 @@ export class Service {
 
     async getPost(slug) {
         try {
-            return await this.databases.getDocument(
+            return await this.databases.listDocuments(
                 config.appwriteDatabaseId,
                 config.appwriteCollectionID,
-                slug
+                [
+                    Query.equal("slug", slug)
+                ]
             )
         } catch (error) {
             console.log(error)
