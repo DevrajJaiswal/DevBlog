@@ -4,7 +4,7 @@ const Input = React.forwardRef(function Input({ label, type = 'text', className 
     const id = useId()
     return (
         <div className='w-full'>
-            {label && <label htmlFor={props.id}>{label}</label>}
+            {label && <label className="text-black/60" htmlFor={props.id}>{label}</label>}
             <input type={type}
                 className={`px-3 py-2 rounded-lg bg-white 
                 text-black outline-none focus:bg-gray-50 
